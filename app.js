@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const AppError = require('./utils/AppError');
+const errorHandler = require('./middlewares/error.middleware');
 
 const app = express();
 
@@ -28,23 +30,19 @@ app.use('/api/auth', authRoutes);
 // app.use('/api/posts', postRoutes);
 
 // Person 5 (Comments):
-// const commentRoutes = require('./routes/comment.routes');
-// app.use('/api/comments', commentRoutes);
-// app.use('/api/posts/:postId/comments', commentRoutes); // nested route
+const {
+  postCommentRoutes,
+  commentRoutes,
+} = require('./routes/comment.routes');
+app.use('/api/posts/:postId/comments', postCommentRoutes);
+app.use('/api/comments', commentRoutes);
 
 // --- 404 handler (for routes that don't match anything above) ---
-app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+app.use((req, res, next) => {
+  next(new AppError('Route not found', 404));
 });
 
 // --- Centralized error handler ---
-// Person 5 will replace this with middlewares/error.middleware.js
-app.use((err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({
-    success: false,
-    message: err.message || 'Server error',
-  });
-});
+app.use(errorHandler);
 
 module.exports = app;

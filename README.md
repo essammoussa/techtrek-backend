@@ -1,103 +1,60 @@
-Blog API — Node.js, Express & MongoDB
+# Blog API (MVC + JWT + Joi)
 
-A RESTful API for a Blog System & User Management, built with Node.js, Express, MongoDB (Mongoose), JWT authentication, and Joi validation, following the MVC architecture.
+## Setup
+1. Install dependencies:
+   - `npm install`
+2. Create env file:
+   - copy `.env.example` to `.env`
+3. Fill required vars:
+   - `PORT`
+   - `MONGO_URI`
+   - `JWT_SECRET`
+   - `JWT_EXPIRES_IN`
+4. Run:
+   - dev: `npm run dev`
+   - prod: `npm start`
 
-Features
-User registration & login with JWT authentication
-Role-based access control (user / admin)
-Blog posts with author relations, categories, tags, and cover images
-Comments on posts, linked to both the post and the commenting user
-Pagination, search, filtering, and sorting on posts
-Request validation with Joi
-Centralized error handling with proper HTTP status codes
-Image uploads (avatars, cover images) via Multer
-Tech Stack
-Runtime: Node.js + Express
-Database: MongoDB with Mongoose
-Auth: JSON Web Tokens (jsonwebtoken) + bcryptjs
-Validation: Joi
-Uploads: Multer
-Security: Helmet, CORS, express-rate-limit
-Project Structure
-project-root/
-├── config/          # Database connection
-├── controllers/     # Business logic per resource
-├── middlewares/      # Auth, validation, error handling, uploads
-├── models/          # Mongoose schemas (User, Post, Comment)
-├── routes/          # Express route definitions
-├── validations/     # Joi schemas
-├── utils/           # Shared helpers (AppError, asyncWrapper)
-├── uploads/         # Uploaded image files
-├── .env             # Environment variables (not committed)
-├── app.js           # Express app setup
-└── server.js        # Entry point — connects DB & starts server
-Getting Started
-1. Clone the repository
+## Core routes
+- Auth: `/api/auth`
+- Users: `/api/users` (to be wired by user module)
+- Posts: `/api/posts` (to be wired by post module)
+- Nested comments create: `POST /api/posts/:postId/comments`
+- Comment delete: `DELETE /api/comments/:id`
 
-git clone https://github.com/essammoussa/techtrek-backend.git
-cd techtrek-backend
+## Error handling
+- Centralized middleware: `middlewares/error.middleware.js`
+- Handles:
+  - AppError status codes
+  - Mongoose validation (400)
+  - Duplicate key (400)
+  - Invalid ObjectId cast (404)
+  - JWT invalid/expired (401)
+  - Unknown errors (500 with generic message only)
 
-3. Install dependencies
-npm install
-4. Set up environment variables
+## Team QA assets
+- Postman collection: `qa/Blog-System.postman_collection.json`
+- Integration notes: `qa/integration-test-notes.txt`
 
-Copy the example file and fill in your own values:
+## Testing
+- Import the Postman collection from `qa/Blog-System.postman_collection.json`.
+- Use collection variables:
+  - `baseUrl` (default: `http://localhost:5000`)
+  - `token`, `tokenUser2`, `adminToken`
+  - `postId`, `commentId`
+- Follow the ordered flow in `qa/integration-test-notes.txt` to verify 200/201/400/401/403/404/429 behavior.
 
-cp .env.example .env
+## Utilities usage examples
+`utils/asyncWrapper.js`:
+```js
+exports.getSomething = asyncWrapper(async (req, res) => {
+  const data = await Model.find();
+  res.status(200).json({ success: true, data });
+});
+```
 
-Edit .env:
-
-PORT=5000
-MONGO_URI=mongodb+srv://<username>:<password>@<cluster-url>/blog-api?retryWrites=true&w=majority
-JWT_SECRET=<a long random string>
-JWT_EXPIRES_IN=7d
-
-4. Run the server
-
-Development (auto-restarts on file changes):
-
-npm run dev or node server.js
-
-If everything is set up correctly, you should see:
-
-MongoDB connected: <host>
-Server running on http://localhost:5000
-5. Test it's working
-bash
-curl http://localhost:5000/api/health
-
-Expected response:
-
-json
-{ "status": "ok" }
-Testing the API
-
-Use Postman or the Thunder Client VS Code extension to send requests.
-
-Example — register a user:
-
-Method: POST
-URL: http://localhost:5000/api/auth/register
-Body (JSON):
-json
-{
-  "name": "Test User",
-  "email": "test@test.com",
-  "password": "123456"
+`utils/AppError.js`:
+```js
+if (!resource) {
+  return next(new AppError('Resource not found', 404));
 }
-
-For protected routes, add the JWT returned from login as a header:
-
-Authorization: Bearer <token>
-API Overview
-Resource	Base Route
-Auth	/api/auth
-Users	/api/users
-Posts	/api/posts
-Comments	/api/posts/:postId/comments, /api/comments
-Environment Variables
-Variable	Description
-PORT	Port the server runs on
-MONGO_URI	MongoDB connection string
-JWT_SECRET	Secret used to sign/verify JWTs
-JWT_EXPIRES_IN	Token expiry (e.g. 7d)
+```

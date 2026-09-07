@@ -1,0 +1,50 @@
+Blog API integration notes
+==========================
+
+Base URL
+- http://localhost:5000
+
+Pre-check
+- Start server with: npm run dev
+- Confirm health: GET /api/health -> 200
+
+Status-code checks used in regression
+- 200: successful reads/deletes/logins
+- 201: successful creates (register, posts, comments)
+- 400: Joi or Mongoose validation failures
+- 401: missing/invalid/expired JWT
+- 403: role or ownership denied
+- 404: route/resource not found
+- 429: login rate limit exceeded
+- 500: unhandled server error (must return generic safe message)
+
+Person 5 routes verified
+1) POST /api/posts/:postId/comments
+   - requires Bearer token -> 401 if missing/invalid
+   - validates { text } with Joi -> 400 for invalid body
+   - returns 404 if post does not exist
+   - success returns 201 with created comment
+
+2) DELETE /api/comments/:id
+   - requires Bearer token -> 401 if missing/invalid
+   - only author or admin can delete
+   - other authenticated non-owner user gets 403
+   - returns 404 if comment does not exist
+   - success returns 200
+
+Security checks
+- Error payloads never include stack traces, DB internals, JWT secret, password hash, or credentials.
+- Auth-protected endpoints rely on req.user from verified JWT, never on client-provided owner IDs.
+
+Practical end-to-end flow
+1) Register user1, user2, and an admin user
+2) Login and store user1 token, user2 token, and admin token
+3) Create a post as user1
+4) Create a comment as user1 -> 201
+5) Try comment creation without token -> 401
+6) Try comment creation with whitespace-only text -> 400
+7) Try comment creation on nonexistent post -> 404
+8) Try deleting user1 comment as user2 -> 403
+9) Delete comment as owner (user1) -> 200
+10) Create another user1 comment and delete it as admin -> 200
+11) Delete nonexistent comment -> 404

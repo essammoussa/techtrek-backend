@@ -1,0 +1,12 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^node -e \"require\\('\\./app'\\); require\\('\\./controllers/comment\\.controller'\\); require\\('\\./routes/comment\\.routes'\\); require\\('\\./middlewares/error\\.middleware'\\); require\\('\\./validations/comment\\.validation'\\); console\\.log\\('Module load check passed'\\);\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^node -e \"require\\('\\./app'\\); require\\('\\./controllers/comment\\.controller'\\); require\\('\\./routes/comment\\.routes'\\); require\\('\\./middlewares/error\\.middleware'\\); require\\('\\./validations/comment\\.validation'\\); JSON\\.parse\\(require\\('fs'\\)\\.readFileSync\\('\\./qa/Blog-System\\.postman_collection\\.json','utf8'\\)\\); console\\.log\\('Sanity checks passed'\\);\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
