@@ -16,8 +16,8 @@ app.get('/api/health', (req, res) => {
 
 // --- Route placeholders ---
 // Person 2 (Auth):
-// const authRoutes = require('./routes/auth.routes');
-// app.use('/api/auth', authRoutes);
+const authRoutes = require('./routes/auth.routes');
+app.use('/api/auth', authRoutes);
 
 // Person 3 (Users):
 // const userRoutes = require('./routes/user.routes');
