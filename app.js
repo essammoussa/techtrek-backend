@@ -22,8 +22,8 @@ const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
 // Person 3 (Users):
-// const userRoutes = require('./routes/user.routes');
-// app.use('/api/users', userRoutes);
+const userRoutes = require('./routes/user.routes');
+app.use('/api/users', userRoutes);
 
 // Person 4 (Posts):
 // const postRoutes = require('./routes/post.routes');
