@@ -26,8 +26,8 @@ const userRoutes = require('./routes/user.routes');
 app.use('/api/users', userRoutes);
 
 // Person 4 (Posts):
-// const postRoutes = require('./routes/post.routes');
-// app.use('/api/posts', postRoutes);
+const postRoutes = require('./routes/post.routes');
+app.use('/api/posts', postRoutes);
 
 // Person 5 (Comments):
 const {
