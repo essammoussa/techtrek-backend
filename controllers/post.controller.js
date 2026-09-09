@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Post = require('../models/Post.model');
 const AppError = require('../utils/AppError');
 const asyncWrapper = require('../utils/asyncWrapper');
@@ -19,14 +20,13 @@ const createPost = asyncWrapper(async (req, res, next) => {
     tags,
     isPublished,
     coverImage,
-    author: req.user._id // بيتاخد من التوكن عبر الـ auth middleware
+    author: req.user.id // بيتاخد من التوكن عبر الـ auth middleware
   });
 
   res.status(201).json({
-    status: 'success',
-    data: {
-      post
-    }
+    success: true,
+    message: 'Post created successfully',
+    data: { post },
   });
 });
 
@@ -70,21 +70,21 @@ const getPosts = asyncWrapper(async (req, res, next) => {
   const total = await Post.countDocuments(query);
 
   res.status(200).json({
-    status: 'success',
-    results: posts.length,
+    success: true,
+    count: posts.length,
     pagination: {
       total,
       page,
-      pages: Math.ceil(total / limit)
+      pages: Math.ceil(total / limit),
     },
-    data: {
-      posts
-    }
+    data: { posts },
   });
 });
 
 // 3. جلب مقال واحد بالـ ID مع الكاتب والكومنتات
 const getPostById = asyncWrapper(async (req, res, next) => {
+  const Comment = mongoose.model('Comment');
+
   const post = await Post.findById(req.params.id)
     .populate('author', 'name email avatar');
 
@@ -92,16 +92,12 @@ const getPostById = asyncWrapper(async (req, res, next) => {
     return next(new AppError('No post found with that ID', 404));
   }
 
-  // جلب الكومنتات الخاصة بالمقال ده (تأكد من وجود نموذج Comment أو اربطه لاحقاً مع زميلك)
-  // هنفترض هنا جلب الكومنتات المرتبطة بالمقال لو موديل Comment مربوط
-  const comments = await mongoose.model('Comment').find({ post: post._id }).populate('user', 'name avatar');
+  const comments = await Comment.find({ post: post._id })
+    .populate('user', 'name avatar');
 
   res.status(200).json({
-    status: 'success',
-    data: {
-      post,
-      comments
-    }
+    success: true,
+    data: { post, comments },
   });
 });
 
@@ -114,7 +110,7 @@ const updatePost = asyncWrapper(async (req, res, next) => {
   }
 
   // التحقق من الملكية أو صلاحية الإدمن
-  if (post.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  if (post.author.toString() !== req.user.id.toString() && req.user.role !== 'admin') {
     return next(new AppError('You do not have permission to perform this action', 403));
   }
 
@@ -129,10 +125,9 @@ const updatePost = asyncWrapper(async (req, res, next) => {
   });
 
   res.status(200).json({
-    status: 'success',
-    data: {
-      post
-    }
+    success: true,
+    message: 'Post updated successfully',
+    data: { post },
   });
 });
 
@@ -145,15 +140,15 @@ const deletePost = asyncWrapper(async (req, res, next) => {
   }
 
   // التحقق من الملكية أو صلاحية الإدمن
-  if (post.author.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+  if (post.author.toString() !== req.user.id.toString() && req.user.role !== 'admin') {
     return next(new AppError('You do not have permission to perform this action', 403));
   }
 
   await Post.findByIdAndDelete(req.params.id);
 
-  res.status(204).json({
-    status: 'success',
-    data: null
+  res.status(200).json({
+    success: true,
+    message: 'Post deleted successfully',
   });
 });
 

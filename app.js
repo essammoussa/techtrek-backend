@@ -11,31 +11,35 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
+// --- Serve uploaded files statically ---
+app.use('/uploads', express.static('uploads'));
+
 // --- Simple health check ---
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// --- Route placeholders ---
-// Person 2 (Auth):
+// --- Routes ---
+// Auth:
 const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
-// Person 3 (Users):
+// Users:
 const userRoutes = require('./routes/user.routes');
 app.use('/api/users', userRoutes);
 
-// Person 4 (Posts):
-const postRoutes = require('./routes/post.routes');
-app.use('/api/posts', postRoutes);
-
-// Person 5 (Comments):
+// Comments (nested) — MUST be mounted BEFORE post routes
+// so /api/posts/:postId/comments is not captured by the post router first
 const {
   postCommentRoutes,
   commentRoutes,
 } = require('./routes/comment.routes');
 app.use('/api/posts/:postId/comments', postCommentRoutes);
 app.use('/api/comments', commentRoutes);
+
+// Posts — mounted AFTER nested comment routes
+const postRoutes = require('./routes/post.routes');
+app.use('/api/posts', postRoutes);
 
 // --- 404 handler (for routes that don't match anything above) ---
 app.use((req, res, next) => {
